@@ -1,0 +1,17 @@
+# Log ve geçici dosyalar
+*.log
+*.tmp
+*.swp
+
+# Yedekleme çıktıları
+backup/
+*.tar.gz
+
+# Editör/IDE dosyaları
+.vscode/
+.idea/
+*.iml
+
+# Sistem dosyaları
+.DS_Store
+Thumbs.db
