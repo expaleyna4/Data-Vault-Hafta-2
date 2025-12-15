@@ -1,0 +1,105 @@
+{
+  "proje": "DATA VAULT - Hafta 2",
+  "tarih": "2025-12-08",
+  "ozellikler": {
+    "yeni_eklenenler": [
+      "Departman klasör yapısı (/data/departmanlar)",
+      "Büyük test dosyaları (fallocate)",
+      "zombie-check.sh scripti",
+      "disk-rapor.sh scripti",
+      "departman-ozet.sh scripti",
+      "tmp/cache klasörleri (rapor dışı)"
+    ],
+    "teknolojiler": [
+      "du -BG (disk kullanımı GB)",
+      "find -printf (dosya arama)",
+      "awk metin işleme",
+      "ps aux (süreç analizi)",
+      "fallocate (hızlı dosya)",
+      "CSV formatı"
+    ]
+  },
+  "dizin_yapisi": {
+    "/data/departmanlar": {
+      "finans": {
+        "boyut": "1GB",
+        "dosyalar": ["2024-yillik.xlsx"],
+        "klasorler": ["tmp", "cache"]
+      },
+      "ik": {
+        "boyut": "800MB",
+        "dosyalar": ["personel-arsiv.zip"],
+        "klasorler": ["tmp", "cache"]
+      },
+      "muhasebe": {
+        "boyut": "600MB",
+        "dosyalar": ["rapor1.bin"]
+      },
+      "arge": {
+        "boyut": "0",
+        "durum": "boş"
+      }
+    },
+    "/opt/data-vault": {
+      "scriptler": [
+        "zombie-check.sh",
+        "disk-rapor.sh",
+        "departman-ozet.sh"
+      ]
+    },
+    "/var/log": {
+      "raporlar": [
+        "disk-rapor-YYYYMMDD.txt",
+        "departman-ozet.csv"
+      ]
+    }
+  },
+  "scriptler": {
+    "zombie-check.sh": {
+      "isim": "Zombie Süreç Kontrolü",
+      "komut": "sudo /opt/data-vault/zombie-check.sh",
+      "cikti": "stdout",
+      "aciklama": "Z durumundaki süreçleri tespit"
+    },
+    "disk-rapor.sh": {
+      "isim": "Disk Analiz Raporu",
+      "komut": "sudo /opt/data-vault/disk-rapor.sh",
+      "cikti": "/var/log/disk-rapor-YYYYMMDD.txt",
+      "ozellikler": [
+        "Departman boyutları (GB)",
+        "En büyük 20 dosya (MB)",
+        "tmp/cache hariç",
+        "Tarihli log"
+      ]
+    },
+    "departman-ozet.sh": {
+      "isim": "Departman CSV Özeti",
+      "komut": "sudo /opt/data-vault/departman-ozet.sh",
+      "cikti": "/var/log/departman-ozet.csv",
+      "format": "departman;boyut_gb;durum",
+      "kurallar": {
+        "UYARI": ">= 50GB",
+        "NORMAL": "< 50GB"
+      }
+    }
+  },
+  "test_sonuclari": {
+    "zombie_kontrol": "✓ Zombie süreç tespit edilmedi",
+    "disk_raporu": "✓ 3GB toplam, 3 departman detayı",
+    "csv_ozet": "✓ 3 departman, tümü NORMAL",
+    "buyuk_dosyalar": "✓ 3 dosya tespit edildi (1GB+800MB+600MB)"
+  },
+  "git_commits": [
+    "e729d88 feat: hafta 2 disk analizi scriptleri",
+    "c300e18 feat: hafta 1 temel yapı"
+  ],
+  "demo_komutlari": [
+    "tree /data -L 2",
+    "ps aux --sort=-%cpu | head -n 10",
+    "sudo /opt/data-vault/zombie-check.sh",
+    "sudo /opt/data-vault/disk-rapor.sh",
+    "sudo cat /var/log/disk-rapor-$(date +%Y%m%d).txt",
+    "sudo /opt/data-vault/departman-ozet.sh",
+    "cat /var/log/departman-ozet.csv"
+  ]
+}

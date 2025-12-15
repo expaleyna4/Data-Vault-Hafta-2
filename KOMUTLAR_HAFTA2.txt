@@ -1,0 +1,360 @@
+# DATA VAULT - HAFTA 2 - KOMUT REFERANSı
+# Tüm kullanılan komutlar ve açıklamaları
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+DİZİN YAPISI OLUŞTURMA
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+# Departman dizinlerini oluştur
+sudo mkdir -p /data/departmanlar/{finans,ik,muhasebe,arge}
+# Yorum: Brace expansion ile 4 departman dizinini tek komutla oluşturur
+
+# tmp ve cache dizinlerini oluştur
+sudo mkdir -p /data/departmanlar/finans/{tmp,cache}
+# Yorum: finans altında geçici dosya klasörleri (rapor dışı tutulacak)
+
+sudo mkdir -p /data/departmanlar/ik/{tmp,cache}
+# Yorum: ik altında geçici dosya klasörleri
+
+# Script dizini oluştur
+sudo mkdir -p /opt/data-vault
+# Yorum: Merkezi script klasörü (/opt altında sistem geneli için)
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+BÜYÜK DOSYA OLUŞTURMA
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+# fallocate ile hızlı dosya oluştur
+sudo fallocate -l 1G /data/departmanlar/finans/2024-yillik.xlsx
+# Yorum: 1GB boyutunda dosya oluştur (disk alanı ayırır ama veri yazmaz, hızlı)
+
+sudo fallocate -l 800M /data/departmanlar/ik/personel-arsiv.zip
+# Yorum: 800MB boyutunda dosya oluştur
+
+sudo fallocate -l 600M /data/departmanlar/muhasebe/rapor1.bin
+# Yorum: 600MB boyutunda dosya oluştur
+
+# Alternatif: dd ile dosya oluştur (yavaş ama her dosya sisteminde çalışır)
+sudo dd if=/dev/zero of=/data/departmanlar/finans/test.bin bs=1M count=1024
+# Yorum: /dev/zero'dan okuyarak 1024 MB dosya oluşturur (bs=block size, count=sayı)
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+DİSK ANALİZİ VE BOYUT HESAPLAMA
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+# Disk kullanımını GB cinsinden göster
+du -BG /data/departmanlar
+# Yorum: Tüm dizin ve alt dizinlerin boyutunu GB olarak gösterir (-BG=GigaByte)
+
+# Belirli klasörleri hariç tut
+du -BG /data/departmanlar --exclude="*/tmp" --exclude="*/cache"
+# Yorum: tmp ve cache klasörlerini rapor dışı bırak
+
+# Sıralı göster (büyükten küçüğe)
+du -BG /data/departmanlar | sort -nr
+# Yorum: sort -nr = numerical reverse (sayısal ters sıralama)
+
+# Sadece en büyük 15'i göster
+du -BG /data/departmanlar | sort -nr | head -n 15
+# Yorum: head -n 15 = ilk 15 satırı göster
+
+# İnsan okunabilir formatta
+du -sh /data/departmanlar/*
+# Yorum: -s=summary (özet), -h=human-readable (1G, 800M gibi)
+
+# Toplam boyut
+du -sh /data/departmanlar
+# Yorum: Toplam dizin boyutunu göster
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+DOSYA ARAMA VE SIRALAMA
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+# Tüm dosyaları bul ve boyutunu göster
+find /data/departmanlar -type f
+# Yorum: -type f = sadece dosyalar (dizinler hariç)
+
+# Boyut bilgisiyle birlikte
+find /data/departmanlar -type f -printf "%s %p\n"
+# Yorum: -printf "%s %p\n" = boyut(byte) dosya_yolu formatında
+
+# Büyükten küçüğe sırala
+find /data/departmanlar -type f -printf "%s %p\n" | sort -nr
+# Yorum: Boyuta göre ters sıralama
+
+# En büyük 20 dosya
+find /data/departmanlar -type f -printf "%s %p\n" | sort -nr | head -n 20
+# Yorum: İlk 20 dosya (en büyükler)
+
+# Boyutu MB'a çevir (AWK ile)
+find /data/departmanlar -type f -printf "%s %p\n" | sort -nr | head -n 20 | awk '{size=$1/1024/1024; printf "%.2f MB\t%s\n", size,$2}'
+# Yorum: AWK ile byte→MB dönüşümü ve formatla (%.2f = 2 ondalık basamak)
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+SÜREÇ ANALİZİ
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+# Tüm süreçleri göster
+ps aux
+# Yorum: a=all users, u=user format, x=tty olmayan süreçler de
+
+# CPU'ya göre sırala
+ps aux --sort=-%cpu
+# Yorum: %cpu azalan sırada (- = reverse)
+
+# En yüksek CPU kullanan 15 süreç
+ps aux --sort=-%cpu | head -n 15
+# Yorum: İlk 15 satır (başlık + 14 süreç)
+
+# RAM'e göre sırala
+ps aux --sort=-%mem
+# Yorum: %mem azalan sırada
+
+# En yüksek RAM kullanan 15 süreç
+ps aux --sort=-%mem | head -n 15
+# Yorum: Bellek kullanımına göre top 15
+
+# Zombie süreç tespiti
+ps aux | awk '$8 ~ /Z/ {print $0}'
+# Yorum: 8. sütun (STAT) 'Z' içerenleri filtrele (Zombie durum kodu)
+
+# Belirli bir kullanıcının süreçleri
+ps aux | grep finansuser
+# Yorum: finansuser'a ait süreçleri filtrele
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+AWK İLE METİN İŞLEME
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+# Temel AWK kullanımı
+du -BG /data/departmanlar/* | awk '{print $1, $2}'
+# Yorum: Her satırın 1. ve 2. sütununu yazdır
+
+# Başlık satırı ekle
+awk 'BEGIN {print "departman;boyut_gb;durum"}'
+# Yorum: BEGIN bloğu = işlem başlamadan önce çalışır
+
+# String değiştirme
+awk '{gsub("G","",size_gb)}'
+# Yorum: gsub = global substitute, "G" harfini boşlukla değiştir
+
+# Path'ten klasör adı çıkar
+awk '{split($2, pathParts, "/"); dept=pathParts[length(pathParts)]}'
+# Yorum: split ile / karakterinden böl, son elemanı al
+
+# Koşullu ifade
+awk '{status = (size_gb >= 50) ? "UYARI" : "NORMAL"}'
+# Yorum: Ternary operator, 50GB üzeri ise UYARI
+
+# CSV formatında yazdır
+awk '{print dept ";" size_gb ";" status}'
+# Yorum: ; ile ayrılmış CSV satırı oluştur
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+SCRİPT İŞLEMLERİ
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+# Script dosyası oluştur (heredoc ile)
+cat > zombie-check.sh << 'EOF'
+#!/usr/bin/env bash
+echo "Zombie kontrol"
+EOF
+# Yorum: << 'EOF' ile çok satırlı script içeriği yaz (heredoc syntax)
+
+# Çalıştırılabilir yap
+sudo chmod +x /opt/data-vault/zombie-check.sh
+# Yorum: Execute (x) izni ekle (+x)
+
+# Script'i çalıştır
+sudo /opt/data-vault/zombie-check.sh
+# Yorum: Tam path ile script'i root olarak çalıştır
+
+# Script içeriğini göster
+cat /opt/data-vault/zombie-check.sh
+# Yorum: Dosya içeriğini ekrana yazdır
+
+# Script'i kopyala
+cp /opt/data-vault/*.sh ~/data-vault/scripts/
+# Yorum: Tüm .sh dosyalarını hedef dizine kopyala
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+RAPOR OLUŞTURMA VE GÖRÜNTÜLEME
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+# Rapor dosyası oluştur (output redirection)
+du -BG /data/departmanlar > /var/log/disk-rapor.txt
+# Yorum: > ile çıktıyı dosyaya yaz (üzerine yaz)
+
+# Rapor dosyasına ekle (append)
+find /data -type f >> /var/log/disk-rapor.txt
+# Yorum: >> ile dosyanın sonuna ekle (üzerine yazmaz)
+
+# Çıktıyı hem ekrana hem dosyaya yaz
+du -BG /data | tee /var/log/disk-rapor.txt
+# Yorum: tee = T boru, hem stdout hem dosyaya yaz
+
+# Tarihli dosya adı
+date +%Y%m%d
+# Yorum: 20251208 formatında tarih üret
+
+# Tarihli rapor oluştur
+sudo /opt/data-vault/disk-rapor.sh
+echo "/var/log/disk-rapor-$(date +%Y%m%d).txt"
+# Yorum: $() ile komut çıktısını dosya adına dahil et
+
+# Raporu görüntüle
+cat /var/log/disk-rapor-20251208.txt
+# Yorum: Tüm dosya içeriğini göster
+
+# Raporun ilk 30 satırını göster
+head -n 30 /var/log/disk-rapor-20251208.txt
+# Yorum: head = dosyanın başından al
+
+# Raporun son 20 satırını göster
+tail -n 20 /var/log/disk-rapor-20251208.txt
+# Yorum: tail = dosyanın sonundan al
+
+# Raporda arama yap
+grep "departmanlar" /var/log/disk-rapor-20251208.txt
+# Yorum: "departmanlar" içeren satırları bul
+
+# Regex ile arama
+grep -E "departmanlar|En Büyük" /var/log/disk-rapor-20251208.txt
+# Yorum: -E = extended regex, | = veya operatörü
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CSV İŞLEMLERİ
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+# CSV dosyası oluştur
+sudo /opt/data-vault/departman-ozet.sh
+# Yorum: Script çalıştır, CSV'yi /var/log altına kaydet
+
+# CSV'yi görüntüle
+cat /var/log/departman-ozet.csv
+# Yorum: Tüm CSV içeriğini göster
+
+# CSV başlık satırı
+head -n 1 /var/log/departman-ozet.csv
+# Yorum: İlk satır (başlıklar)
+
+# CSV'de arama yap
+grep "finans" /var/log/departman-ozet.csv
+# Yorum: finans içeren satırları bul
+
+# CSV'yi sütunlara ayırarak göster
+column -t -s ';' /var/log/departman-ozet.csv
+# Yorum: -s ';' = ; ayracını kullan, -t = tablo formatı
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+DOSYA BİLGİLERİ VE DETAYLAR
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+# Dosya boyutu (byte)
+stat -c %s /data/departmanlar/finans/2024-yillik.xlsx
+# Yorum: %s = size in bytes
+
+# Dosya boyutu MB cinsinden
+stat -c %s /data/file.txt | awk '{print $1/1024/1024 " MB"}'
+# Yorum: Byte'ı MB'a çevir
+
+# Dosya tipi
+stat -c %F /data/file.txt
+# Yorum: %F = file type (regular file, directory, etc.)
+
+# Dosya izinleri
+stat -c %a /data/file.txt
+# Yorum: %a = access rights in octal (örn: 644)
+
+# Human-readable boyut
+ls -lh /data/departmanlar/finans/2024-yillik.xlsx
+# Yorum: -h ile 1G, 800M gibi gösterim
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+DİZİN YAPISI GÖRÜNTÜLEME
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+# Tree komutu (ağaç görünümü)
+tree /data -L 2
+# Yorum: -L 2 = maksimum 2 seviye derinlik
+
+# Tree kurulumu (gerekirse)
+sudo apt install tree
+# Yorum: tree paketini kur
+
+# Recursive liste (tree yoksa)
+ls -lR /data
+# Yorum: -R = recursive, tüm alt dizinler
+
+# Sadece dizinleri göster
+ls -ld /data/departmanlar/*/
+# Yorum: */ = sadece dizinler
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+GİT İŞLEMLERİ (HAFTA 2)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+# Script'leri repo'ya ekle
+cd ~/data-vault
+git add scripts/*.sh
+# Yorum: scripts klasöründeki tüm .sh dosyalarını stage'e al
+
+# Commit yap
+git commit -m "feat: hafta 2 disk analizi scriptleri eklendi"
+# Yorum: Conventional commit format (feat: = yeni özellik)
+
+# Commit geçmişini göster
+git log --oneline
+# Yorum: Kısa format (hash + mesaj)
+
+# Son 5 commit
+git log --oneline | head -n 5
+# Yorum: En son 5 commit
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ÖNEMLİ NOTLAR
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+FALLOCATE VS DD:
+  fallocate: Disk alanı ayırır, veri yazmaz → Hızlı
+  dd: Gerçek veri yazar (/dev/zero'dan) → Yavaş ama evrensel
+
+DU PARAMETRELER:
+  -B = block size (KB, MB, GB)
+  -h = human-readable (otomatik birim seçer)
+  -s = summary (sadece toplam)
+  -c = grand total (en sonda toplam göster)
+
+FIND PRINTF FORMAT:
+  %s = size (byte)
+  %p = path
+  %f = filename
+  %u = user
+  %g = group
+
+AWK YAPISI:
+  BEGIN {...}     = işlem başlamadan önce
+  {...}           = her satır için
+  END {...}       = işlem bittikten sonra
+  $1, $2, $NF     = sütunlar (NF = son sütun)
+  gsub(a,b,c)     = c içinde a'yı b ile değiştir
+  split(str,arr,sep) = str'yi sep'e göre böl, arr dizisine at
+
+PIPE (|) KULLANIMI:
+  cmd1 | cmd2     = cmd1'in çıktısı cmd2'ye girdi olur
+  Örnek: du | sort | head
+    1. du disk kullanımını listeler
+    2. sort sıralar
+    3. head ilk N satırı alır
